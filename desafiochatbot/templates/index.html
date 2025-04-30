@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>ChatBot de Filmes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    #chat-container {
+      width: 420px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #chat {
+      padding: 20px;
+      height: 460px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin-bottom: 10px;
+      max-width: 75%;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .user {
+      background: #dcf8c6;
+      align-self: flex-end;
+      border-bottom-left-radius: 0;
+    }
+
+    .bot {
+      background: #e9ecef;
+      align-self: flex-start;
+      border-bottom-right-radius: 0;
+    }
+
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      width: 100%;
+      border: none;
+      border-top: 1px solid #ddd;
+    }
+
+    input {
+      border-radius: 0;
+      padding: 14px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <header>🎬 ChatBot de Filmes</header>
+    <div id="chat">
+      <div id="messages"></div>
+    </div>
+    <input type="text" id="movieInput" placeholder="Digite algo...">
+    <button onclick="enviarMensagem()">Enviar</button>
+  </div>
+
+  <script>
+    function addMessage(content, sender) {
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message', sender);
+      messageDiv.innerHTML = content;
+      document.getElementById('messages').appendChild(messageDiv);
+      document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+    }
+
+    async function enviarMensagem() {
+      const input = document.getElementById('movieInput');
+      const texto = input.value.trim();
+      if (!texto) return;
+
+      addMessage(`Você: ${texto}`, 'user');
+      input.value = '';
+
+      try {
+        const response = await fetch('/mensagem', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mensagem: texto })
+        });
+
+        const data = await response.json();
+        const resposta = data.resposta;
+
+        if (Array.isArray(resposta)) {
+          resposta.forEach(item => addMessage(item, 'bot'));
+        } else {
+          addMessage(resposta, 'bot');
+        }
+
+      } catch (err) {
+        addMessage('⚠️ Erro ao se comunicar com o servidor.', 'bot');
+      }
+    }
+  </script>
+</body>
+</html>
